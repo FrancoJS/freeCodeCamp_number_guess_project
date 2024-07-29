@@ -30,37 +30,47 @@ MAIN(){
 GUESS_NUMBER(){
   echo $1
   read USER_NUMBER
-  if [[ ! $USER_NUMBER =~ ^[0-9]+$ ]]
+  if [[ $USER_NUMBER =~ ^[0-9]+$ ]]
   then
-    echo "That is not a integer, guess again:"
-    GUESS_NUMBER $1
-  fi
-  NUMBER_GUESSES=0
-  while [ $USER_NUMBER -ne $1 ]
-  do
-    if [[ $USER_NUMBER -gt $1 ]]
-    then
-      NUMBER_GUESSES=$((NUMBER_GUESSES + 1))
-      echo "It's lower than that, guess again:"
-      read USER_NUMBER
-    fi
-    if [[ $USER_NUMBER -lt $1 ]]
-    then
-      NUMBER_GUESSES=$((NUMBER_GUESSES + 1))
-      echo "It's higher than that, guess again:"
-      read USER_NUMBER
-    fi
+    NUMBER_GUESSES=1
     if [[ $USER_NUMBER == $1 ]]
     then
-      NUMBER_GUESSES=$((NUMBER_GUESSES + 1))
-      echo "You guessed it in $NUMBER_GUESSES tries. The secret number was $1. Nice job!"
-      BEST_GAME=$($PSQL "select best_game from users where user_id = $2")
+    echo "You guessed it in $NUMBER_GUESSES tries. The secret number was $1. Nice job!"
+    BEST_GAME=$($PSQL "select best_game from users where user_id = $2")
       if [[ -z $BEST_GAME || $NUMBER_GUESSES -lt $BEST_GAME ]]
       then
         UPDATE_BEST_GAME=$($PSQL "update users set best_game = $NUMBER_GUESSES where user_id = $2")
       fi
-    fi
+    else
+    while [ $USER_NUMBER -ne $1 ]
+    do
+      if [[ $USER_NUMBER -gt $1 ]]
+      then
+        echo "It's lower than that, guess again:"
+        read USER_NUMBER
+        NUMBER_GUESSES=$((NUMBER_GUESSES + 1))
+      fi
+      if [[ $USER_NUMBER -lt $1 ]]
+      then
+        echo "It's higher than that, guess again:"
+        read USER_NUMBER
+        NUMBER_GUESSES=$((NUMBER_GUESSES + 1))
+      fi
+      if [[ $USER_NUMBER == $1 ]]
+      then
+        echo "You guessed it in $NUMBER_GUESSES tries. The secret number was $1. Nice job!"
+        BEST_GAME=$($PSQL "select best_game from users where user_id = $2")
+        if [[ -z $BEST_GAME || $NUMBER_GUESSES -lt $BEST_GAME ]]
+        then
+          UPDATE_BEST_GAME=$($PSQL "update users set best_game = $NUMBER_GUESSES where user_id = $2")
+        fi
+      fi
   done
+  fi
+  else
+    echo "That is not a integer, guess again:"
+    GUESS_NUMBER $1
+  fi
 }
 
 MAIN $NUMBER
