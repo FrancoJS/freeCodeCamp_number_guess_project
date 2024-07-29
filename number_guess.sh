@@ -1,6 +1,7 @@
 #!/bin/bash
 PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
 
+
 NUMBER=$((( RANDOM % 1000 ) + 1 ))
 
 MAIN(){
@@ -14,7 +15,11 @@ MAIN(){
     then
       echo "Welcome, $USERNAME! It looks like this is your first time here."
     fi
+  else
+    IFS='|' read -r GAMES_PLAYED BEST_GAME < <($PSQL "select games_played, best_game from users where user_id = $USER_ID")
+    echo "Welcome back, $USERNAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
   fi
+  
 }
 
-MAIN
+MAIN $NUMBER
